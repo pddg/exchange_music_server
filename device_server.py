@@ -2,7 +2,7 @@ import socketserver
 import argparse
 from session import Session
 import models
-import settings
+import configparser
 
 
 # UDPサーバー割り込み処理
@@ -64,15 +64,17 @@ class DeviceServer:
 
     def __init__(self, debugging=True):
         # settings.pyでホストとポートを設定
-        self.HOST = settings.SERVER_HOST
-        self.PORT = settings.SERVER_PORT
+        self.inifile = configparser.ConfigParser()
+        self.inifile.read("./device_server_config.ini")
         self.debugging = debugging
 
     def run(self):
         # サーバー立ち上げ
         # handlerを動的に決定．debugging=Trueならデバッグモード
         handler = DebugUDPHandler if self.debugging else UDPHandler
-        server = socketserver.ThreadingUDPServer((self.HOST, self.PORT), handler)
+        HOST = self.inifile.get("settings", "host")
+        PORT = self.inifile.getint("settings", "port")
+        server = socketserver.ThreadingUDPServer((HOST, PORT), handler)
         # 割り込みループ
         server.serve_forever()
 
