@@ -144,26 +144,25 @@ def update_playlist(user_id):
         return playlist
     now = datetime.now()
     new_playlist = json.loads(request.data.decode("utf-8"))
-    if len(new_playlist) > 10:
+    if len(new_playlist["data"]) > 10:
         abort(400)
     with Session() as sess:
         user_data = sess.query(models.User).filter_by(id=user_id).first()
         for playlist in user_data.playlists:
             if playlist.year == now.year and playlist.month == now.month:
                 del playlist.clips[:]
-                insert_clips(new_playlist, sess)
-                sess.commit()
+                insert_clips(new_playlist["data"], sess)
                 break
         else:
-            inserted_playlist = insert_clips(new_playlist, sess)
+            inserted_playlist = insert_clips(new_playlist["data"], sess)
             user_data.playlists.append(inserted_playlist)
-            sess.commit()
+        sess.commit()
         response = jsonify(create_playlist_response(user_data.playlists[0]))
         response.status_code = 200
         return response
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
 
 
 
