@@ -125,6 +125,18 @@ def return_exchange_playlist(user_id):
             abort(404)
 
 
+@app.route("/user/<user_id>/exchange", methods=["DELETE"])
+def reset_exchanges(user_id):
+    with Session() as session:
+        user_data = session.query(models.User).filter_by(id=user_id).first()
+        if user_data:
+            user_data.exchange = []
+            session.commit()
+            return jsonify({"message": "success"})
+        else:
+            abort(404)
+
+
 @app.route("/user/<user_id>/playlist", methods=["POST"])
 def update_playlist(user_id):
     def insert_clips(clips, session, playlist=None):
@@ -145,14 +157,14 @@ def update_playlist(user_id):
     now = datetime.now()
     new_playlist = json.loads(request.data.decode("utf-8"))
     new_playlist = json.loads(new_playlist["data"])
-    if len(new_playlist["data"]) > 10:
+    if len(new_playlist) > 10:
         abort(400)
     with Session() as sess:
         user_data = sess.query(models.User).filter_by(id=user_id).first()
-        for (i, playlist) in user_data.playlists:
+        for playlist in user_data.playlists:
             if playlist.year == now.year and playlist.month == now.month:
                 del playlist.clips[:]
-                insert_clips(new_playlist["data"], sess)
+                insert_clips(new_playlist, sess)
                 sess.commit()
                 break
         else:
