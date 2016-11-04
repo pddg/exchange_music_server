@@ -40,7 +40,8 @@ class UDPHandler(socketserver.BaseRequestHandler):
                     # ownerの情報を取得
                     owner = sess.query(models.User).filter_by(id=own_id).first()
                     current_exchanges = [owner.exchange[i].exchange_id for i in range(len(owner.exchange))]
-                    ex_set = set([int(ex_id) for ex_id in exchange_ids])
+                    ex_ids_not_zero = [int(ex_id) for ex_id in exchange_ids if int(ex_id) != 0]
+                    ex_set = set(ex_ids_not_zero)
                     old_set = set(current_exchanges)
                     # 現在のownerが所持するidと送られてきたidで共通のもの
                     common_set = old_set & ex_set
